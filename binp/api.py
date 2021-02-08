@@ -18,7 +18,7 @@ class InvokeResult(BaseModel):
 
 
 def create_app(journals: Journals, kv: KV, actions: Action) -> FastAPI:
-    internal = FastAPI(title='PYRED', description='Internal APIs')
+    internal = FastAPI(title='BINP', description='Internal APIs')
 
     @internal.get('/actions/', operation_id='listActions', response_model=List[ActionInfo])
     async def list_actions():
@@ -51,7 +51,7 @@ def create_app(journals: Journals, kv: KV, actions: Action) -> FastAPI:
         return res
 
     static_dir = Path(__file__).absolute().parent / "static"
-    app = FastAPI(title='PYRED', description='User defined APIs. See internal APIs <a href="internal/redoc">here</a>')
+    app = FastAPI(title='BINP', description='User defined APIs. See internal APIs <a href="internal/redoc">here</a>')
     if getenv('DEV', '') == 'true':
         from fastapi.middleware.cors import CORSMiddleware
 

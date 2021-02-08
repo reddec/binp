@@ -9,7 +9,7 @@
     import Callout from "../_components/Callout.svelte";
     import AppBar from "../_components/AppBar.svelte";
 
-    metatags.title = 'BIP'
+    metatags.title = 'BINP'
     metatags.description = 'Basic Integration Platform'
 
     const perPage = 20

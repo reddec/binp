@@ -9,7 +9,7 @@ from pydantic.main import BaseModel
 
 from binp import BINP
 
-bip = BINP()
+binp = BINP()
 
 
 class Rates(BaseModel):
@@ -19,25 +19,25 @@ class Rates(BaseModel):
 
 
 @aiocron.crontab('30 * * * *')
-@bip.app.post('/currency-rate', response_model=Rates)
-@bip.journal
+@binp.app.post('/currency-rate', response_model=Rates)
+@binp.journal
 async def currency_rate():
     """
     Fetch currency rate for USD
     """
-    await bip.journal.record('fetching....', base_currency='USD')
+    await binp.journal.record('fetching....', base_currency='USD')
     async with ClientSession() as session:
         res = await session.get('https://api.exchangeratesapi.io/latest?base=USD')
         assert res.ok, f"result {res.status}"
         data = await res.json()
     rates = Rates.parse_obj(data)
-    await bip.journal.record('done', base_currency='USD', rates=rates)
-    await bip.kv.save(rates)
+    await binp.journal.record('done', base_currency='USD', rates=rates)
+    await binp.kv.save(rates)
     return rates
 
 
-@bip.app.post('/fail')
-@bip.journal
+@binp.app.post('/fail')
+@binp.journal
 async def do_fail():
     """
     Fail always
@@ -46,8 +46,8 @@ async def do_fail():
     assert 1 == 2, 'Ooops'
 
 
-@bip.action
-@bip.journal
+@binp.action
+@binp.journal
 async def do_something():
     """
     Do smoething
@@ -55,14 +55,11 @@ async def do_something():
     return 'hello world'
 
 
-@bip.autostart
+@binp.autostart
 async def poll_something():
     while True:
         print("background task")
         await sleep(1)
 
-
-# @journal.log(ops name)
-# @events.subscribe('event name'), events.emit
 
 basicConfig(level=INFO)

@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * PYRED
+ * BINP
  * Internal APIs
  *
  * The version of the OpenAPI document: 0.1.0

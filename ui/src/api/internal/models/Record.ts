@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * PYRED
+ * BINP
  * Internal APIs
  *
  * The version of the OpenAPI document: 0.1.0
@@ -14,7 +14,7 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * 
+ * Single record in journal
  * @export
  * @interface Record
  */

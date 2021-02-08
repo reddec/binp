@@ -16,7 +16,7 @@
             })
             status = 'success'
         } catch (e) {
-            failedMessage = e.toLocaleString()
+            failedMessage = e.toString()
             status = 'failed'
         }
     }
@@ -152,7 +152,7 @@
         </div>
     {:else if status === 'failed'}
         <div class="beard failed" >
-            {failedMessage}
+            operation failed
         </div>
     {/if}
 </a>

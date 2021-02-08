@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * PYRED
+ * BINP
  * Internal APIs
  *
  * The version of the OpenAPI document: 0.1.0
@@ -166,34 +166,6 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async listJournals(requestParameters: ListJournalsRequest): Promise<Array<Headline>> {
         const response = await this.listJournalsRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Redirects :return:
-     * Main Page Redirect
-     */
-    async mainPageRedirectStaticGetRaw(): Promise<runtime.ApiResponse<any>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        const response = await this.request({
-            path: `/static/`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.TextApiResponse(response) as any;
-    }
-
-    /**
-     * Redirects :return:
-     * Main Page Redirect
-     */
-    async mainPageRedirectStaticGet(): Promise<any> {
-        const response = await this.mainPageRedirectStaticGetRaw();
         return await response.value();
     }
 
