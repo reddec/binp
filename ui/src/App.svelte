@@ -11,4 +11,4 @@
     }
 </style>
 
-<Router {routes}/>
+<Router config="{{useHash: true}}" {routes}/>

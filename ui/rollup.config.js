@@ -27,7 +27,7 @@ const serve = () => ({
     writeBundle: async () => {
         const options = {
             assetsDir: [assetsDir, distDir],
-            entrypoint: `${assetsDir}/__app.html`,
+            entrypoint: `${assetsDir}/index.html`,
             script: `${buildDir}/main.js`
         }
         spassr({...options, port: 5000})
@@ -85,7 +85,7 @@ export default {
         },
         injectManifest({
             globDirectory: assetsDir,
-            globPatterns: ['**/*.{js,css,svg}', '__app.html'],
+            globPatterns: ['**/*.{js,css,svg}', 'index.html'],
             swSrc: `src/sw.js`,
             swDest: `${distDir}/serviceworker.js`,
             maximumFileSizeToCacheInBytes: 10000000, // 10 MB,
