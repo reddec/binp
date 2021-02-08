@@ -26,11 +26,11 @@ from random import randint
 
 from binp import BINP
 
-bip = BINP()
+binp = BINP()
 
 
-@bip.app.post('/random', response_model=int)
-@bip.journal
+@binp.app.post('/random', response_model=int)
+@binp.journal
 async def generate_random():
     """
     Generate random number in range 0 ... 1024
@@ -38,8 +38,8 @@ async def generate_random():
     return randint(0, 1024)
 
 
-@bip.action
-@bip.journal
+@binp.action
+@binp.journal
 async def currency_rate():
     """
     Fetch currency rate for EUR -> USD

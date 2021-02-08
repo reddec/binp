@@ -39,7 +39,7 @@ class Action:
 
        binp = BINP()
 
-       @bip.action
+       @binp.action
        async def invoke():
            '''
            Do something
@@ -59,7 +59,7 @@ class Action:
 
        binp = BINP()
 
-       @bip.action(name='Do Something', description='Emulate some heavy work')
+       @binp.action(name='Do Something', description='Emulate some heavy work')
        async def invoke():
            await sleep(3)
            print("done")

@@ -61,7 +61,80 @@ class Journal(Headline):
 
 class Journals:
     """
-    Journal of logged invokes
+    Journal of logged invokes.
+
+    Should be used as decorator for async methods. Will create, track and record changes automatically.
+    In case of exception, the error will be logged and an exception re-raised.
+
+    :Example:
+
+    .. code-block:: python
+
+       from binp import BINP
+       from asyncio import sleep
+
+       binp = BINP()
+
+       @binp.journal
+       async def invoke():
+           '''
+           Do something
+           '''
+           await sleep(3) # emulate some work
+           print("done")
+
+    By default, journal will be created with name equal to fully-qualified
+    function name and description from doc-string (if exists).
+
+    Name and description could by optionally defined manually.
+
+    .. code-block:: python
+
+       from binp import BINP
+       from asyncio import sleep
+
+       binp = BINP()
+
+       @binp.journal(operation='Do Something', description='Emulate some heavy work')
+       async def invoke():
+           await sleep(3)
+           print("done")
+
+    It's possible to add multiple record to journal. Each record contains text message and unlimited number
+    of key-value pairs, where value should JSON serializable objects or be subclass of BaseModel (pydantic).
+
+
+    .. code-block:: python
+
+       from binp import BINP
+       from asyncio import sleep
+
+       binp = BINP()
+
+       @binp.journal
+       async def invoke():
+           await binp.journal.record("begin work", source="http://example.com", by="reddec")
+           await sleep(3)
+           await binp.journal.record("work done", status="success")
+
+    It's safe to combine journal annotation with any other decorators.
+
+    To get current journal ID use ``current_journal``
+
+    .. code-block:: python
+
+       from binp.journals import current_journal
+
+       binp = BINP()
+
+       @binp.journal
+       async def invoke():
+           print("Journal ID:", current_journal.get())
+
+    ``current_journal`` can be used only with function decorated by @journal in call chain.
+    Otherwise it will return None. The variable is context-depended and coroutine-safe.
+
+    **Important!** Never set current journal manually.
     """
 
     def __init__(self, database: Optional[Database] = None):
