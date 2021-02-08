@@ -1,5 +1,9 @@
 # Basic Integration Platform
 
+![PyPI](https://img.shields.io/pypi/v/binp)
+![PyPI - License](https://img.shields.io/pypi/l/binp)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/binp)
+
 ![logo-192](https://user-images.githubusercontent.com/6597086/107153224-4dc2d080-69a7-11eb-96d1-31c304fb821f.png)
 
 Provides all-in-one package with:
@@ -51,9 +55,27 @@ Save as 'example.py' and run it by
 uvicorn example:bip.app
 ```
 
+> TIP: pass `--reload` flag to `uvicorn` to support automatic reload during development
+
 It will expose
 
 * http://127.0.0.1:8000 - UI and API
 * http://127.0.0.1:8000/docs - Swagger docs for user-defined APIs
 * http://127.0.0.1:8000/internal/docs - Swagger docs for internal APIs
 
+## Configuration
+
+Default configuration can be changed by environment variables:
+
+* `DEV` - set `DEV=true` to enable development mode
+* `DB_URL` - database SQLITE URL, default `sqlite:///data.db`
+
+HTTP port and binding address configured by `uvicorn`:
+
+* `--port` - set listening port, default `8000`
+* `--host` - set binding host, default `127.0.0.1`
+
+
+For `uvicorn` command should be like
+
+    uvicorn <python file without .py>:<binp instance>.app
