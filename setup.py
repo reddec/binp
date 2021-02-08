@@ -22,13 +22,13 @@ setuptools.setup(name="binp",
                  url="https://github.com/reddec/binp",
                  packages=['binp'],
                  classifiers=[
-                     "Programming Language :: Python :: 3.7",
+                     "Programming Language :: Python :: 3.8",
                      "License :: OSI Approved :: MIT License",
                      "Operating System :: OS Independent",
                      "Intended Audience :: Developers",
                      "Intended Audience :: System Administrators"
                  ],
-                 python_requires='>=3.7',
+                 python_requires='>=3.8',
                  install_requires=[
                      'fastapi~=0.63.0',
                      'aiofiles~=0.6.0',
