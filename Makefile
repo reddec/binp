@@ -1,10 +1,20 @@
+export VERSION ?= dev-$(shell git rev-parse --short HEAD)
+
+ifndef GITHUB_REF
+export PATH := $(PWD)/venv/bin:$(PATH)
+endif
+
 all: build
 
 build: system-files python ui test
-	cd build && ../venv/bin/python3 -m build
+	cd build && python3 -m build
 
-release: build
-	cd build && ../venv/bin/twine upload dist/*
+ifdef GITHUB_REF
+release-github: build
+	cd build && twine upload -u __token__ dist/*
+endif
+
+
 dirs:
 	rm -rf build
 	mkdir -p build/binp
@@ -20,6 +30,6 @@ ui: dirs
 	cp -r ui/dist build/binp/static
 
 test:
-	./venv/bin/python -m unittest discover -s tests
+	python3 -m unittest discover -s tests
 
 .PHONY: all build

@@ -1,10 +1,14 @@
+from os import getenv
+
 import setuptools
+
+version = getenv('GITHUB_REF', getenv('VERSION', 'dev')).split('/')[-1].strip('v')
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(name="binp",
-                 version="0.0.1",
+                 version=version,
                  author="Aleksandr Baryshnikov",
                  author_email="owner@reddec.net",
                  description="Basic Integration Platform",
