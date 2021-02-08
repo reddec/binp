@@ -75,7 +75,7 @@ def create_app(journals: Journals, kv: KV, actions: Action) -> FastAPI:
             Redirects to UI
             """
             return Response(status_code=302, headers={
-                'Location': 'static'
+                'Location': 'static/index.html#/'
             })
 
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
