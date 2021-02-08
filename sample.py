@@ -1,3 +1,4 @@
+from asyncio import sleep
 from datetime import date
 from logging import INFO, basicConfig
 from typing import Dict
@@ -52,6 +53,13 @@ async def do_something():
     Do smoething
     """
     return 'hello world'
+
+
+@bip.autostart
+async def poll_something():
+    while True:
+        print("background task")
+        await sleep(1)
 
 
 # @journal.log(ops name)

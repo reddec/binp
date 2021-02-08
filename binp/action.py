@@ -23,6 +23,51 @@ class ActionInfo(BaseModel):
 class Action:
     """
     Expose user-defined action as 'button' in UI
+
+
+    Expose async function as button to ui.
+
+    It will not be automatically journaled: it's up to you
+    add ``@binp.journal`` annotation or not.
+
+    :Example:
+
+    .. code-block:: python
+
+       from binp import BINP
+       from asyncio import sleep
+
+       binp = BINP()
+
+       @bip.action
+       async def invoke():
+           '''
+           Do something
+           '''
+           await sleep(3) # emulate some work
+           print("done")
+
+    By default, action will be exposed with name equal to fully-qualified
+    function name and description from doc-string (if exists).
+
+    Exposed name could by optionally defined manually.
+
+    .. code-block:: python
+
+       from binp import BINP
+       from asyncio import sleep
+
+       binp = BINP()
+
+       @bip.action(name='Do Something', description='Emulate some heavy work')
+       async def invoke():
+           await sleep(3)
+           print("done")
+
+
+    :Conflicts:
+
+    Actions are indexed by name. If multiple actions defined with the same name - the latest one will be used.
     """
 
     def __init__(self):
@@ -56,7 +101,8 @@ class Action:
 
     async def invoke(self, name: str) -> bool:
         """
-        Invoke action by name or ignore. If handler will raise an error, the error will NOT be suppressed .
+        Invoke action by name or ignore. If handler will raise an error, the error will NOT be suppressed.
+
         :param name: action name
         :return: true if action invoked
         """

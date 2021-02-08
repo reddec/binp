@@ -32,4 +32,8 @@ ui: dirs
 test:
 	python3 -m unittest discover -s tests
 
-.PHONY: all build
+docs:
+	rm -rf docs/_build
+	cd docs && SOURCEDIR=../binp $(MAKE) html
+
+.PHONY: all build docs

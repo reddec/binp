@@ -11,7 +11,52 @@ T = TypeVar('T', bound=BaseModel)
 
 class KV:
     """
-    Basic Key-Value storage with namespace
+    Basic Key-Value storage with namespace.
+
+
+    By default - 'default' namespace used. All values are serialized to JSON by standard JSON module or in case
+    value is subclass of pydantic BaseMode - by pydantic ``.json()``.
+
+    :Example:
+
+    .. code-block:: python
+
+        from binp import BINP
+
+        binp = BINP()
+
+        async def save_something():
+            # save multiple values to storage
+            await binp.kv.set(name="reddec", repo="binp", year=2020)
+            # get single value
+            name = await binp.kv.get('name')
+            assert name == 'reddec'
+
+
+    There is some optimization for saving/loading Pydantic classes when class name itself a key.
+
+    :Example:
+
+    .. code-block:: python
+
+        from binp import BINP
+        from pydantic.main import BaseModel
+
+        binp = BINP()
+
+        class Author(BaseModel):
+            name: str
+            repo: str
+            year: int
+
+        async def save_something():
+            value = Author(name="reddec", repo="binp", year=2020)
+            # save class with key name equal to fully-qualified class name
+            await binp.kv.save(value)
+            # restore
+            saved_value = await binp.kv.load(Author)
+            assert value == saved_value
+
     """
 
     def __init__(self, namespace: str = 'default', db: Optional[Database] = None):
@@ -30,6 +75,7 @@ class KV:
     async def load(self, klass: Type[T]) -> Optional[T]:
         """
         Load and parse value by key name equal to class name (fqdn)
+
         :param klass: BaseModel inherited class to load and parse
         """
         db = await self.__db()

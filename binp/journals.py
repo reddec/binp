@@ -19,31 +19,43 @@ It's not recommended modify the variable outside core module.
 current_journal: ContextVar[Optional[int]] = ContextVar('current_journal', default=None)
 
 
-class Event(BaseModel):
-    journal_id: int
-    id: int
-    name: str
-    value: Any
-    created: datetime
-
-
 class Record(BaseModel):
+    """
+    Single record in journal
+    """
+    #: message provided by invoker
     message: str
+    #: record creation time
     created_at: datetime
+    #: fields defined for record
     params: Dict[str, Any]
 
 
 class Headline(BaseModel):
+    """
+    Journal header
+    """
+    #: Journal unique ID
     id: int
+    #: operation name
     operation: str
+    #: operation description
     description: str
+    #: journal creation time
     started_at: datetime
+    #: execution end time
     finished_at: Optional[datetime] = None
+    #: error message if any
     error: Optional[str] = None
+    #: accurate operation duration
     duration: Optional[float] = None
 
 
 class Journal(Headline):
+    """
+    Journal entity with header and linked records
+    """
+    #: journal records
     records: List[Record]
 
 
