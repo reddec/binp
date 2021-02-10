@@ -1,23 +1,27 @@
-<script>
+<script lang="ts">
     import {metatags} from '@roxi/routify'
     import JournalCard from "../../_components/JournalCard.svelte";
     import {InternalAPI} from "../../api";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import Loader from "../../_components/Loader.svelte";
     import RecordCard from "../../_components/RecordCard.svelte";
     import Callout from "../../_components/Callout.svelte";
     import {url} from '@roxi/routify'
     import Header from "../../_components/Header.svelte";
+    import {journalUpdates, Updates} from "../../api/updates";
+    import {Journal} from "../../api/internal";
 
     metatags.title = 'BIP'
     metatags.description = 'Basic Integration Platform'
 
     export let journalId;
 
-    let journal;
+    let journal: Journal;
 
     let failedMessage;
     let downloading = true;
+    let updates: Updates<Journal> = null;
+
 
     async function download() {
         downloading = true;
@@ -31,7 +35,17 @@
         }
     }
 
-    onMount(download);
+    function init() {
+        download();
+        updates = journalUpdates(journalId, update);
+    }
+
+    function update(updatedJournal: Journal) {
+        journal = updatedJournal;
+    }
+
+    onMount(init);
+    onDestroy(() => updates.close())
 
 </script>
 <style>
@@ -67,11 +81,7 @@
     }
 
 </style>
-<Header title="Journal" backURL="/">
-    <a slot="right-action" on:click={download}>
-        🗘
-    </a>
-</Header>
+<Header title="Journal" backURL="/"/>
 <div class="content">
     <div class="list">
         {#if downloading}

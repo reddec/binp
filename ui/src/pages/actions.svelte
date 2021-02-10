@@ -49,7 +49,6 @@
 <AppBar>
     <Header>
         <span slot="left-action">&nbsp;</span>
-        <a slot="right-action" on:click={() => download(true)}>🗘</a>
         <span>Actions</span>
     </Header>
     <TopMenu/>

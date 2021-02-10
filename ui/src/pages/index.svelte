@@ -1,13 +1,14 @@
-<script>
+<script lang="ts">
     import {metatags} from '@roxi/routify'
     import JournalCard from "../_components/JournalCard.svelte";
     import {InternalAPI} from "../api";
-    import {onMount} from "svelte";
+    import {onMount, onDestroy} from "svelte";
     import Loader from "../_components/Loader.svelte";
     import Header from "../_components/Header.svelte";
     import TopMenu from "../_components/TopMenu.svelte";
     import Callout from "../_components/Callout.svelte";
     import AppBar from "../_components/AppBar.svelte";
+    import {journalsHeadlines} from "../api/updates.ts";
 
     metatags.title = 'BINP'
     metatags.description = 'Basic Integration Platform'
@@ -21,6 +22,7 @@
     let hasMore = true;
     let success = false;
     let failedMessage = null;
+    let updates;
 
     async function download(reset = false) {
         if (!hasMore) {
@@ -46,7 +48,28 @@
         }
     }
 
-    onMount(download);
+    function init() {
+        updates = journalsHeadlines(update);
+        download();
+    }
+
+    function update(headline) {
+        let updated = false;
+        journals = journals.map((j) => {
+            if (j.id === headline.id) {
+                updated = true;
+                return headline
+            }
+            return j
+        })
+        if (!updated) {
+            journals.unshift(headline);
+        }
+    }
+
+
+    onMount(init);
+    onDestroy(() => updates.close())
 
 </script>
 <style>
@@ -85,9 +108,6 @@
 <AppBar>
     <Header>
         <span slot="left-action">&nbsp;</span>
-        <a slot="right-action" on:click={() => download(true)}>
-            🗘
-        </a>
         <span>Activities</span>
     </Header>
     <TopMenu/>

@@ -10,6 +10,7 @@ from databases import Database
 from pydantic.main import BaseModel
 
 from binp.db import ensure
+from binp.events import Emitter
 
 """
 Current journal record ID. Can be used only from functions under @journal.log decorators.
@@ -134,11 +135,19 @@ class Journals:
     ``current_journal`` can be used only with function decorated by @journal in call chain.
     Otherwise it will return None. The variable is context-depended and coroutine-safe.
 
+
+    Events:
+
+    * ``journal_updated`` - when journal created or updated. Emits journal ID
+    * ``record_added`` - when record added. Emits journal ID
+
     **Important!** Never set current journal manually.
     """
 
     def __init__(self, database: Optional[Database] = None):
         self.__db = ensure(database)
+        self.journal_updated: Emitter[int] = Emitter()
+        self.record_added: Emitter[int] = Emitter()
 
     def __call__(self, func=None, *, operation: Optional[str] = None, description: Optional[str] = None):
         """
@@ -211,9 +220,30 @@ class Journals:
         })
         if info is None:
             return None
+
+        headline = await self.headline(journal_id)
+        if headline is None:
+            return None
+
         records = await self.__fetch_records(journal_id)
 
         return Journal(
+            records=records,
+            **dict(headline),
+        )
+
+    async def headline(self, journal_id: int) -> Optional[Headline]:
+        """
+        Get single journal headline (without records) by ID
+        """
+        db = await self.__db()
+
+        info = await db.fetch_one('SELECT * FROM journal WHERE id = :journal_id', values={
+            'journal_id': journal_id
+        })
+        if info is None:
+            return None
+        return Headline(
             id=info['id'],
             operation=info['operation'],
             description=info['description'],
@@ -221,7 +251,6 @@ class Journals:
             finished_at=info['finished_at'],
             error=info['error'],
             duration=info['duration'],
-            records=records,
         )
 
     async def record(self, message: str, **events: Union[BaseModel, str, int, float, bool]):
@@ -255,6 +284,7 @@ class Journals:
                 'value': value.json() if isinstance(value, BaseModel) else dumps(value, ensure_ascii=False),
                 'record_id': record_id
             } for name, value in events.items()])
+        self.record_added.emit(journal_id)
 
     async def remove_dead(self):
         """
@@ -304,9 +334,11 @@ class Journals:
             })
             res = await db.fetch_one('SELECT last_insert_rowid()')
 
-        return res[0]
+        journal_id = res[0]
+        self.journal_updated.emit(journal_id)
+        return journal_id
 
-    async def __end(self, rec_id: int, delta: float, exc=None):
+    async def __end(self, journal_id: int, delta: float, exc=None):
         db = await self.__db()
         await db.execute('''
         UPDATE journal
@@ -316,6 +348,7 @@ class Journals:
         WHERE id = :id                
                             ''', values={
             'duration': delta,
-            'id': rec_id,
+            'id': journal_id,
             'error': str(exc) if exc is not None else None
         })
+        self.journal_updated.emit(journal_id)
