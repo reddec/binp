@@ -4,6 +4,7 @@
     import {slide} from 'svelte/transition';
     import Card from "./card/Card.svelte";
     import Content from "./card/Content.svelte";
+    import Chin from "./card/Chin.svelte";
 
     export let record;
 
@@ -27,7 +28,7 @@
 
 </style>
 <Card>
-    <Content on:click={()=>showFields = !showFields} title={record.message}>
+    <Content title={record.message}>
         {#if showFields}
             <div class="fields" transition:slide|local>
                 {#each Object.entries(record.params) as [key, value]}
@@ -39,16 +40,22 @@
                     </div>
                 {/each}
             </div>
-        {:else if fieldsNum > 0 }
-            click to see
-            {#if fieldsNum > 1}
-                {fieldsNum} fields
-            {:else}
-                {fieldsNum} field
-            {/if}
-
         {/if}
         <span slot="footer">{createdAt.format('DD MMMM YYYY')}</span>
         <span slot="footer">{createdAt.format('HH:mm:ss')}</span>
     </Content>
+    {#if fieldsNum > 0 }
+        <Chin on:click={()=>showFields = !showFields} status="info">
+            {#if showFields}
+                click to hide
+            {:else}
+                click to see
+                {#if fieldsNum > 1}
+                    {fieldsNum} fields
+                {:else}
+                    {fieldsNum} field
+                {/if}
+            {/if}
+        </Chin>
+    {/if}
 </Card>
