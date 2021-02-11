@@ -1,5 +1,5 @@
 <script>
     import {redirect} from '@roxi/routify'
 
-    $redirect('#/journal')
+    $redirect('/journal')
 </script>
