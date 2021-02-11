@@ -140,6 +140,7 @@ Requires additional dependencies: ``pip install aiohttp aiocron``
     journal.rst
     action.rst
     kv.rst
+    service.rst
     utils.rst
 
 Indices and tables

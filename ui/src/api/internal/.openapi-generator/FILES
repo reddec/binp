@@ -4,9 +4,12 @@ index.ts
 models/ActionInfo.ts
 models/HTTPValidationError.ts
 models/Headline.ts
+models/Info.ts
 models/InvokeResult.ts
 models/Journal.ts
 models/Record.ts
+models/ServiceControl.ts
+models/Status.ts
 models/ValidationError.ts
 models/index.ts
 runtime.ts

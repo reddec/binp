@@ -24,12 +24,18 @@ import {
     Headline,
     HeadlineFromJSON,
     HeadlineToJSON,
+    Info,
+    InfoFromJSON,
+    InfoToJSON,
     InvokeResult,
     InvokeResultFromJSON,
     InvokeResultToJSON,
     Journal,
     JournalFromJSON,
     JournalToJSON,
+    ServiceControl,
+    ServiceControlFromJSON,
+    ServiceControlToJSON,
 } from '../models';
 
 export interface GetJournalRequest {
@@ -42,6 +48,11 @@ export interface InvokeActionRequest {
 
 export interface ListJournalsRequest {
     page?: number;
+}
+
+export interface ManageServiceRequest {
+    name: string;
+    serviceControl: ServiceControl;
 }
 
 /**
@@ -82,6 +93,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
+     * Invoke custom action (methods annotated by @action)
      * Invoke Action
      */
     async invokeActionRaw(requestParameters: InvokeActionRequest): Promise<runtime.ApiResponse<InvokeResult>> {
@@ -104,6 +116,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
+     * Invoke custom action (methods annotated by @action)
      * Invoke Action
      */
     async invokeAction(requestParameters: InvokeActionRequest): Promise<InvokeResult> {
@@ -112,6 +125,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
+     * List available actions
      * List Actions
      */
     async listActionsRaw(): Promise<runtime.ApiResponse<Array<ActionInfo>>> {
@@ -130,6 +144,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
+     * List available actions
      * List Actions
      */
     async listActions(): Promise<Array<ActionInfo>> {
@@ -166,6 +181,71 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async listJournals(requestParameters: ListJournalsRequest): Promise<Array<Headline>> {
         const response = await this.listJournalsRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * List all defined services
+     * List Services
+     */
+    async listServicesRaw(): Promise<runtime.ApiResponse<Array<Info>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/services/`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(InfoFromJSON));
+    }
+
+    /**
+     * List all defined services
+     * List Services
+     */
+    async listServices(): Promise<Array<Info>> {
+        const response = await this.listServicesRaw();
+        return await response.value();
+    }
+
+    /**
+     * Manage Service
+     */
+    async manageServiceRaw(requestParameters: ManageServiceRequest): Promise<runtime.ApiResponse<any>> {
+        if (requestParameters.name === null || requestParameters.name === undefined) {
+            throw new runtime.RequiredError('name','Required parameter requestParameters.name was null or undefined when calling manageService.');
+        }
+
+        if (requestParameters.serviceControl === null || requestParameters.serviceControl === undefined) {
+            throw new runtime.RequiredError('serviceControl','Required parameter requestParameters.serviceControl was null or undefined when calling manageService.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/service/{name}`.replace(`{${"name"}}`, encodeURIComponent(String(requestParameters.name))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ServiceControlToJSON(requestParameters.serviceControl),
+        });
+
+        return new runtime.TextApiResponse(response) as any;
+    }
+
+    /**
+     * Manage Service
+     */
+    async manageService(requestParameters: ManageServiceRequest): Promise<any> {
+        const response = await this.manageServiceRaw(requestParameters);
         return await response.value();
     }
 

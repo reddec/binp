@@ -1,3 +1,5 @@
+<!-- routify:options title="Journal" -->
+<!-- routify-options param-is-page -->
 <script lang="ts">
     import {metatags} from '@roxi/routify'
     import JournalCard from "../../_components/JournalCard.svelte";
@@ -6,13 +8,9 @@
     import Loader from "../../_components/Loader.svelte";
     import RecordCard from "../../_components/RecordCard.svelte";
     import Callout from "../../_components/Callout.svelte";
-    import {url} from '@roxi/routify'
-    import Header from "../../_components/Header.svelte";
     import {journalUpdates, Updates} from "../../api/updates";
     import {Journal} from "../../api/internal";
-
-    metatags.title = 'BIP'
-    metatags.description = 'Basic Integration Platform'
+    import {fade} from 'svelte/transition'
 
     export let journalId;
 
@@ -22,6 +20,7 @@
     let downloading = true;
     let updates: Updates<Journal> = null;
 
+    metatags.title = `Journal ${journalId}`
 
     async function download() {
         downloading = true;
@@ -81,7 +80,6 @@
     }
 
 </style>
-<Header title="Journal" backURL="/"/>
 <div class="content">
     <div class="list">
         {#if downloading}
@@ -95,10 +93,12 @@
         {:else}
             <JournalCard {journal}/>
             {#if journal.error}
-                <br/>
-                <Callout status="failed">
-                    {journal.error}
-                </Callout>
+                <div in:fade|local>
+                    <br/>
+                    <Callout status="failed" label="error" title="Operation failed">
+                        {journal.error}
+                    </Callout>
+                </div>
             {/if}
 
             <hr/>
@@ -106,8 +106,10 @@
                 <p class="records-header">Records</p>
                 <br/>
                 {#each journal.records as record}
-                    <RecordCard {record}/>
-                    <br/>
+                    <div in:fade>
+                        <RecordCard {record}/>
+                        <br/>
+                    </div>
                 {/each}
             {:else}
                 <p class="records-header">No records</p>

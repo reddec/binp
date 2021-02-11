@@ -136,7 +136,7 @@ class Journals:
     Otherwise it will return None. The variable is context-depended and coroutine-safe.
 
 
-    Events:
+    :Events:
 
     * ``journal_updated`` - when journal created or updated. Emits journal ID
     * ``record_added`` - when record added. Emits journal ID

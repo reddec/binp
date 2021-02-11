@@ -35,7 +35,7 @@
     "node-sass": "^5.0.0",
     "nollup": "^0.13.13",
     "npm-run-all": "^4.1.5",
-    "postcss": "^8.2.5",
+    "postcss": "^8.2.6",
     "postcss-import": "^13.0.0",
     "rollup": "^2.38.5",
     "rollup-plugin-hot": "^0.1.1",
@@ -47,14 +47,12 @@
     "rollup-plugin-workbox": "^5.2.1",
     "spank": "^1.5.1",
     "spassr": "^2.2.0",
-    "svelte": "^3.29.4",
-    "svelte-check": "^1.1.32",
-    "svelte-fa": "^2.2.0",
-    "svelte-material-ui": "^2.0.0-beta.0",
-    "svelte-preprocess": "^4.6.6",
+    "svelte": "^3.32.2",
+    "svelte-check": "^1.1.34",
+    "svelte-preprocess": "^4.6.7",
     "tossr": "^1.3.1",
     "tslib": "^2.1.0",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.5"
   },
   "routify": {
     "extensions": "svelte,html,svx,md",

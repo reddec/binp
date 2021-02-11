@@ -35,3 +35,20 @@ async def always_fail():
     """
     await sleep(3)  # emulate request
     raise RuntimeError("always failed")
+
+
+@binp.service
+async def check_rss():
+    """
+    Primitive service that checks rss every 3 seconds
+    """
+    await sleep(3)  # emulate request
+    print("RSS checked")
+
+
+@binp.service(restart=False)
+async def one_shot():
+    """
+    Primitive service that runs only once
+    """
+    await sleep(3)  # emulate workload

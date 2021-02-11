@@ -1,7 +1,10 @@
 <script>
     import dayjs from 'dayjs';
     import JSONTree from 'svelte-json-tree'
-    import { slide, fade } from 'svelte/transition';
+    import {slide} from 'svelte/transition';
+    import Card from "./card/Card.svelte";
+    import Content from "./card/Content.svelte";
+
     export let record;
 
     let showFields = false;
@@ -10,46 +13,6 @@
     $:createdAt = dayjs(record.createdAt)
 </script>
 <style>
-    .card {
-        display: flex;
-        flex-direction: column;
-
-        align-items: stretch;
-        text-decoration: none;
-        color: black;
-    }
-
-    .info {
-        cursor: pointer;
-        border-radius: 0.7em;
-        border: 0.02rem solid black;
-        padding: 0.5em;
-        background-color: white;
-        z-index: 3;
-    }
-
-    .fields {
-        padding: 2.2em 0.5em 0.2em;
-        border-radius: 0.7em;
-        border: 0.13em solid black;
-        z-index: 2;
-        margin-top: -2em;
-        background-color: white;
-        font-size: smaller;
-    }
-
-    .tong {
-        text-align: center;
-        padding-top: 1.2em;
-        padding-bottom: 0.2em;
-        color: white;
-        border-radius: 0.7em;
-        border: 0.02rem solid black;
-        z-index: 1;
-        margin-top: -1em;
-        background-color: #2D9BF0;
-        font-size: smaller;
-    }
 
 
     .field {
@@ -61,34 +24,10 @@
         margin-bottom: 0.2em;
     }
 
-    .footer {
-        display: flex;
-        justify-content: space-between;
-        font-size: x-small;
-    }
-
-    .body {
-        padding-top: 0.2em;
-        padding-bottom: 0.4em;
-        color: #666666;
-    }
-
-    .muted {
-        align-self: center;
-        color: #999999;
-    }
 
 </style>
-
-<div class="card">
-    <div class="info" on:click={()=>showFields = !showFields}>
-        <div class="body">{record.message}</div>
-        <div class="footer">
-            <span class="muted">{createdAt.format('DD MMMM YYYY')}</span>
-            <span class="muted">{createdAt.format('HH:mm:ss')}</span>
-        </div>
-    </div>
-    {#if fieldsNum > 0}
+<Card>
+    <Content on:click={()=>showFields = !showFields} title={record.message}>
         {#if showFields}
             <div class="fields" transition:slide|local>
                 {#each Object.entries(record.params) as [key, value]}
@@ -100,17 +39,16 @@
                     </div>
                 {/each}
             </div>
+        {:else if fieldsNum > 0 }
+            click to see
+            {#if fieldsNum > 1}
+                {fieldsNum} fields
+            {:else}
+                {fieldsNum} field
+            {/if}
+
         {/if}
-            <div class="tong" on:click={()=>showFields = !showFields}>
-            <span>
-                {#if fieldsNum > 1}
-                    {fieldsNum} fields
-                {:else}
-                    {fieldsNum} field
-                {/if}
-            </span>
-            </div>
-
-
-    {/if}
-</div>
+        <span slot="footer">{createdAt.format('DD MMMM YYYY')}</span>
+        <span slot="footer">{createdAt.format('HH:mm:ss')}</span>
+    </Content>
+</Card>

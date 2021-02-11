@@ -11,6 +11,7 @@ from pydantic.main import BaseModel
 from binp.action import ActionInfo, Action
 from binp.journals import Headline, Journal, Journals
 from binp.kv import KV
+from binp.service import Info, Service
 
 
 class InvokeResult(BaseModel):
@@ -18,7 +19,11 @@ class InvokeResult(BaseModel):
     duration: float
 
 
-def create_app(journals: Journals, kv: KV, actions: Action) -> FastAPI:
+class ServiceControl(BaseModel):
+    running: bool
+
+
+def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -> FastAPI:
     internal = FastAPI(title='BINP', description='Internal APIs')
 
     @internal.get('/actions/', operation_id='listActions', response_model=List[ActionInfo])
@@ -83,6 +88,31 @@ def create_app(journals: Journals, kv: KV, actions: Action) -> FastAPI:
                     continue
                 journal = await journals.get(journal_id)
                 await websocket.send_text(journal.json())
+
+    @internal.get("/services/", operation_id='listServices', response_model=List[Info])
+    async def list_services():
+        """
+        List all defined services
+        """
+        return services.services
+
+    @internal.websocket("/services/updates")
+    async def notify_services_updates(websocket: WebSocket):
+        """
+        Stream services updates
+        """
+        await websocket.accept()
+        with services.service_changed.subscribe() as queue:
+            while True:
+                update = await queue.get()
+                await websocket.send_text(update.json())
+
+    @internal.put("/service/{name}", operation_id='manageService')
+    async def manage_service(name: str, control: ServiceControl):
+        if control.running:
+            services.start(name)
+        else:
+            services.stop(name)
 
     static_dir = Path(__file__).absolute().parent / "static"
     app = FastAPI(title='BINP', description='User defined APIs. See internal APIs <a href="internal/redoc">here</a>')
