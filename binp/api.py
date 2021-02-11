@@ -7,6 +7,7 @@ from typing import List
 from fastapi import FastAPI, HTTPException, Response, WebSocket
 from fastapi.staticfiles import StaticFiles
 from pydantic.main import BaseModel
+from websockets import ConnectionClosed
 
 from binp.action import ActionInfo, Action
 from binp.journals import Headline, Journal, Journals
@@ -62,7 +63,10 @@ def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -
             while True:
                 journal_id = await queue.get()
                 journal = await journals.get(journal_id)
-                await websocket.send_text(journal.json())
+                try:
+                    await websocket.send_text(journal.json())
+                except ConnectionClosed:
+                    break
 
     @internal.get("/journal/{journal_id}", operation_id='getJournal', response_model=Journal)
     async def get_journal(journal_id: int):
@@ -87,7 +91,10 @@ def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -
                 if event_journal_id != journal_id:
                     continue
                 journal = await journals.get(journal_id)
-                await websocket.send_text(journal.json())
+                try:
+                    await websocket.send_text(journal.json())
+                except ConnectionClosed:
+                    break
 
     @internal.get("/services/", operation_id='listServices', response_model=List[Info])
     async def list_services():
@@ -105,7 +112,10 @@ def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -
         with services.service_changed.subscribe() as queue:
             while True:
                 update = await queue.get()
-                await websocket.send_text(update.json())
+                try:
+                    await websocket.send_text(update.json())
+                except ConnectionClosed:
+                    break
 
     @internal.put("/service/{name}", operation_id='manageService')
     async def manage_service(name: str, control: ServiceControl):
