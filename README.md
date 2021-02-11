@@ -27,7 +27,7 @@ could be launched even on Raspberry Pi Zero with 512MB RAM.
 
 ## Install
 
-`pip install binp uvicorn`
+`pip install binp uvicorn[standard]`
 
 Example:
 

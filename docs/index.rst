@@ -30,7 +30,7 @@ Requires:
 Installation
 ------------
 
-``pip install binp uvicorn``
+``pip install binp uvicorn[standard]``
 
 
 Sample usage
