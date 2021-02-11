@@ -14,6 +14,7 @@
     z-index: 0;
     margin-top: -1em;
     font-size: smaller;
+    cursor: pointer;
   }
 </style>
 <div class="chin {status}" in:slide|local on:click>
