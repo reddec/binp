@@ -1,8 +1,10 @@
+from asyncio import sleep, get_event_loop, Event
+
 from binp.journals import Journals, current_journal
 from tests import atest, TestWithDB
 
 
-class TestJournal(TestWithDB):
+class TestJournals(TestWithDB):
 
     @atest
     async def test_log(self):
@@ -126,3 +128,81 @@ class TestJournal(TestWithDB):
 
         record = saved_journal.records[2]
         assert record.message == 'some message 1' and record.params == {'stage': 'init'}
+
+    @atest
+    async def test_labels(self):
+        journal = Journals(self.db)
+
+        @journal
+        async def sample():
+            await journal.labels('foo', 'bar')
+            await journal.labels('zoo', 'foo')
+            return journal.current
+
+        journal_id = await sample()
+
+        info = await journal.get(journal_id)
+        labels = tuple(sorted(info.labels))
+
+        assert labels == ('bar', 'foo', 'zoo'), ", ".join(labels)
+
+    @atest
+    async def test_search(self):
+
+        journal = Journals(self.db)
+
+        @journal(operation='sample')
+        async def sample():
+            await journal.labels('alfa', 'beta')
+
+        @journal
+        async def failed():
+            await journal.labels('alfa', 'gamma')
+            raise RuntimeError('boooo')
+
+        started = Event()
+
+        @journal
+        async def pending():
+            started.set()
+            await sleep(10000)
+
+        await sample()
+        await sample()
+
+        try:
+            await failed()
+        except RuntimeError:
+            pass
+
+        get_event_loop().create_task(pending())
+        await started.wait()
+
+        # by operation
+        res = await journal.search(operation='sample')
+        assert len(res) == 2
+        assert res[0].operation == 'sample' and res[1].operation == 'sample'
+
+        # only failed
+        res = await journal.search(failed=True)
+        assert len(res) == 1
+        assert res[0].operation == failed.__qualname__
+
+        # only successful or pending
+        res = await journal.search(failed=False)
+        assert len(res) == 3
+
+        # only pending
+        res = await journal.search(pending=True)
+        assert len(res) == 1
+        assert res[0].operation == pending.__qualname__
+
+        # only finished
+        res = await journal.search(pending=False)
+        assert len(res) == 3
+        assert set(x.operation for x in res) == {'sample', failed.__qualname__}
+
+        # only with labels
+        res = await journal.search(labels=['alfa'])
+        assert len(res) == 3, len(res)
+        assert set(x.operation for x in res) == {'sample', failed.__qualname__}

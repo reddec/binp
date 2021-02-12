@@ -33,6 +33,9 @@ import {
     Journal,
     JournalFromJSON,
     JournalToJSON,
+    Query,
+    QueryFromJSON,
+    QueryToJSON,
     ServiceControl,
     ServiceControlFromJSON,
     ServiceControlToJSON,
@@ -53,6 +56,11 @@ export interface ListJournalsRequest {
 export interface ManageServiceRequest {
     name: string;
     serviceControl: ServiceControl;
+}
+
+export interface SearchJournalsRequest {
+    query: Query;
+    page?: number;
 }
 
 /**
@@ -153,7 +161,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
-     * List journal records in reverse order. Maximum 20 items per page.
+     * List journal records in reverse order
      * List Journals
      */
     async listJournalsRaw(requestParameters: ListJournalsRequest): Promise<runtime.ApiResponse<Array<Headline>>> {
@@ -176,7 +184,7 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
-     * List journal records in reverse order. Maximum 20 items per page.
+     * List journal records in reverse order
      * List Journals
      */
     async listJournals(requestParameters: ListJournalsRequest): Promise<Array<Headline>> {
@@ -246,6 +254,45 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async manageService(requestParameters: ManageServiceRequest): Promise<any> {
         const response = await this.manageServiceRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Search journals
+     * Search Journals
+     */
+    async searchJournalsRaw(requestParameters: SearchJournalsRequest): Promise<runtime.ApiResponse<Array<Headline>>> {
+        if (requestParameters.query === null || requestParameters.query === undefined) {
+            throw new runtime.RequiredError('query','Required parameter requestParameters.query was null or undefined when calling searchJournals.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/journals/search`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: QueryToJSON(requestParameters.query),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(HeadlineFromJSON));
+    }
+
+    /**
+     * Search journals
+     * Search Journals
+     */
+    async searchJournals(requestParameters: SearchJournalsRequest): Promise<Array<Headline>> {
+        const response = await this.searchJournalsRaw(requestParameters);
         return await response.value();
     }
 

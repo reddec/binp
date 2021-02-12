@@ -2,7 +2,7 @@ from asyncio import Queue
 from os import getenv
 from pathlib import Path
 from time import monotonic
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Response, WebSocket
 from fastapi.staticfiles import StaticFiles
@@ -24,7 +24,14 @@ class ServiceControl(BaseModel):
     running: bool
 
 
-def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -> FastAPI:
+class Query(BaseModel):
+    operation: Optional[str] = None
+    failed: Optional[bool] = None
+    pending: Optional[bool] = None
+    labels: Optional[List[str]] = None
+
+
+def create_app(journals: Journals, kv: KV, actions: Action, services: Service, page_limit: int = 20) -> FastAPI:
     internal = FastAPI(title='BINP', description='Internal APIs')
 
     @internal.get('/actions/', operation_id='listActions', response_model=List[ActionInfo])
@@ -49,9 +56,16 @@ def create_app(journals: Journals, kv: KV, actions: Action, services: Service) -
     @internal.get("/journals/", operation_id='listJournals', response_model=List[Headline])
     async def list_journals(page: int = 0):
         """
-        List journal records in reverse order. Maximum 20 items per page.
+        List journal records in reverse order
         """
-        return await journals.history(page * 20)
+        return await journals.history(page * page_limit)
+
+    @internal.post("/journals/search", operation_id='searchJournals', response_model=List[Headline])
+    async def search_journals(query: Query, page: int = 0):
+        """
+        Search journals
+        """
+        return await journals.search(**query.__dict__, offset=page * page_limit, limit=page_limit)
 
     @internal.websocket("/journals/updates")
     async def notify_journals_updates(websocket: WebSocket):

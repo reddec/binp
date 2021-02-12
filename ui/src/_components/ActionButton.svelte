@@ -26,7 +26,7 @@
 
 </script>
 <Card>
-    <Content title={action.name} {status} on:click={invoke}>
+    <Content title={action.name} {status} on:header-click={invoke} on:click={invoke}>
         {action.description}
     </Content>
     {#if status && status !== 'pending'}

@@ -43,7 +43,7 @@
 
 
 <Card>
-    <Content title="{service.name}" {status} {tip} on:click={toggle}>
+    <Content title="{service.name}" {status} {tip} on:header-click={toggle} on:click={toggle}>
         {service.description}
         <span slot="status">
         {service.status === Status.Restarting ? 'restart...' : service.status}</span>
@@ -59,7 +59,7 @@
     {:else if toggling}
         <Chin status="pending">toggling...</Chin>
     {:else}
-        <Chin status="info">click to
+        <Chin status="info" on:click={toggle}>click to
             {#if toBeStarted}start{:else}stop{/if}
         </Chin>
     {/if}

@@ -52,6 +52,12 @@ export interface Journal {
     startedAt: Date;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof Journal
+     */
+    labels: Array<string>;
+    /**
+     * 
      * @type {Date}
      * @memberof Journal
      */
@@ -90,6 +96,7 @@ export function JournalFromJSONTyped(json: any, ignoreDiscriminator: boolean): J
         'operation': json['operation'],
         'description': json['description'],
         'startedAt': (new Date(json['started_at'])),
+        'labels': json['labels'],
         'finishedAt': !exists(json, 'finished_at') ? undefined : (new Date(json['finished_at'])),
         'error': !exists(json, 'error') ? undefined : json['error'],
         'duration': !exists(json, 'duration') ? undefined : json['duration'],
@@ -110,6 +117,7 @@ export function JournalToJSON(value?: Journal | null): any {
         'operation': value.operation,
         'description': value.description,
         'started_at': (value.startedAt.toISOString()),
+        'labels': value.labels,
         'finished_at': value.finishedAt === undefined ? undefined : (value.finishedAt.toISOString()),
         'error': value.error,
         'duration': value.duration,

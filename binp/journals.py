@@ -4,7 +4,7 @@ from functools import wraps
 from json import dumps, loads
 from logging import getLogger
 from time import monotonic
-from typing import List, Optional, Union, Any, Dict
+from typing import List, Optional, Union, Any, Dict, Mapping, Collection, Tuple
 
 from databases import Database
 from pydantic.main import BaseModel
@@ -44,12 +44,27 @@ class Headline(BaseModel):
     description: str
     #: journal creation time
     started_at: datetime
+    #: assigned labels
+    labels: List[str]
     #: execution end time
     finished_at: Optional[datetime] = None
     #: error message if any
     error: Optional[str] = None
     #: accurate operation duration
     duration: Optional[float] = None
+
+    @classmethod
+    def from_database(cls, info: Mapping, labels: List[str]) -> 'Headline':
+        return Headline(
+            id=info['id'],
+            operation=info['operation'],
+            description=info['description'],
+            started_at=info['started_at'],
+            finished_at=info['finished_at'],
+            error=info['error'],
+            duration=info['duration'],
+            labels=labels,
+        )
 
 
 class Journal(Headline):
@@ -196,18 +211,73 @@ class Journals:
             'offset': offset,
             'limit': limit
         })
-        return [
-            Headline(
-                id=info['id'],
-                operation=info['operation'],
-                description=info['description'],
-                started_at=info['started_at'],
-                finished_at=info['finished_at'],
-                error=info['error'],
-                duration=info['duration'],
-            )
-            for info in rows
-        ]
+        ans = []
+        for info in rows:
+            labels = await self.__fetch_labels(info['id'])
+            ans.append(Headline.from_database(info, labels))
+        return ans
+
+    async def search(self, operation: Optional[str] = None,
+                     failed: Optional[bool] = None,
+                     pending: Optional[bool] = None,
+                     labels: Optional[Collection[str]] = None,
+                     offset: int = 0,
+                     limit: int = 20) -> List[Headline]:
+        """
+        Search journals. Each condition joined by AND operator. Null conditions will not be applied.
+        If no conditions defined, it's equal to plain history() operation.
+        Result ordered in reverse order (newest - first).
+
+        :param operation: operation name
+        :param failed: with error message
+        :param pending: without finished_at attribute
+        :param labels: labels names (at least one of list)
+        :param offset: how many records to skip
+        :param limit: maximum number of records to return
+        """
+        conditions = []
+        args = {
+            'offset': offset,
+            'limit': limit
+        }
+        if operation is not None:
+            conditions.append('operation = :operation')
+            args['operation'] = operation
+        if failed is not None:
+            if failed:
+                conditions.append('error IS NOT NULL')
+            else:
+                conditions.append('error IS NULL')
+        if pending is not None:
+            if pending:
+                conditions.append('finished_at IS NULL')
+            else:
+                conditions.append('finished_at IS NOT NULL')
+        if labels is not None:
+            opts = []
+            for i, label in enumerate(labels):
+                key = f'label_{i}'
+                args[key] = label
+                opts.append(":" + key)
+
+            conditions.append(
+                f'id IN (SELECT distinct(journal_id) FROM journal_label WHERE label IN ({",".join(opts)}))')
+
+        if len(conditions) == 0:
+            return await self.history(offset, limit)
+
+        where = ' AND '.join(conditions)
+        query = f'SELECT journal.* FROM journal WHERE {where} ORDER BY id LIMIT :limit OFFSET :offset'
+        getLogger(self.__class__.__qualname__).debug('search query: %s', query)
+        db = await self.__db()
+        rows = await db.fetch_all(query, values=args)
+
+        ans = []
+        for info in rows:
+            labels = await self.__fetch_labels(info['id'])
+            ans.append(Headline.from_database(info, labels))
+
+        return ans
 
     async def get(self, journal_id: int) -> Optional[Journal]:
         """
@@ -243,15 +313,23 @@ class Journals:
         })
         if info is None:
             return None
-        return Headline(
-            id=info['id'],
-            operation=info['operation'],
-            description=info['description'],
-            started_at=info['started_at'],
-            finished_at=info['finished_at'],
-            error=info['error'],
-            duration=info['duration'],
-        )
+        labels = await self.__fetch_labels(journal_id)
+        return Headline.from_database(info, labels)
+
+    async def labels(self, *labels: str):
+        """
+        Assign labels to journal. Duplicated labels will be ignored. Only under @journal function.
+        """
+        logger = getLogger(self.__class__.__qualname__)
+        journal_id = current_journal.get()
+        if journal_id is None:
+            logger.warning('function no marked as @journal - label will not be assigned')
+            return
+        db = await self.__db()
+        await db.execute_many('INSERT OR IGNORE INTO journal_label (journal_id, label) VALUES (:journal_id, :label)',
+                              values=[
+                                  {'journal_id': journal_id, 'label': label} for label in labels
+                              ])
 
     async def record(self, message: str, **events: Union[BaseModel, str, int, float, bool]):
         """
@@ -295,6 +373,22 @@ class Journals:
                    DELETE FROM journal
                    WHERE finished_at IS NULL
                ''')
+
+    @property
+    def current(self) -> Optional[int]:
+        """
+        Helper to get current journal ID
+        """
+        return current_journal.get()
+
+    async def __fetch_labels(self, journal_id: int) -> List[str]:
+        db = await self.__db()
+        rows = await db.fetch_all('SELECT label FROM journal_label WHERE journal_id = :journal_id', values={
+            'journal_id': journal_id
+        })
+        if rows is None:
+            return []
+        return [row['label'] for row in rows]
 
     async def __fetch_records(self, journal_id: int) -> List[Record]:
         db = await self.__db()

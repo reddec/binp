@@ -1,8 +1,12 @@
 <script>
     import dayjs from 'dayjs';
-    import {goto, url} from '@roxi/routify'
+    import {goto} from '@roxi/routify'
     import Card from "./card/Card.svelte";
     import Content from "./card/Content.svelte";
+    import TagList from "./TagList.svelte";
+    import {createEventDispatcher} from "svelte";
+
+    const dispatch = createEventDispatcher();
 
     export let journal = {};
 
@@ -35,8 +39,11 @@
     }
 
     function openJournal() {
-        // not working
         $goto('/journal/:journal', {journal: journal.id})
+    }
+
+    function onTagClick({detail}) {
+        dispatch('tag-click', detail)
     }
 
     $:status = (journal.finishedAt ? (journal.error ? 'failed' : 'success') : 'pending')
@@ -44,13 +51,16 @@
 </script>
 
 <Card>
-    <a href="/journal/:journal" use:$url={{journal: journal.id}} style="text-decoration: none">
-        <!-- FIXME: workaround due to bug in GoTo -->
-        <Content status="{status}" title={journal.operation} tip="#{journal.id}">
-            {journal.description}
-            <span slot="footer">{startedAt.format('DD MMMM YYYY')}</span>
-            <span slot="footer">{displayDiff(journal.duration)}</span>
-            <span slot="footer">{startedAt.format('HH:mm:ss')}</span>
-        </Content>
-    </a>
+    <Content status="{status}" title={journal.operation} tip="#{journal.id}"
+             on:header-click={()=> dispatch('header-click')}
+             on:click={openJournal}>
+        {journal.description || ' '}
+        <div slot="append">
+            <TagList tags={journal.labels} on:click={onTagClick}/>
+        </div>
+        <span slot="footer">{startedAt.format('DD MMMM YYYY')}</span>
+        <span slot="footer">{displayDiff(journal.duration)}</span>
+        <span slot="footer">{startedAt.format('HH:mm:ss')}</span>
+    </Content>
+
 </Card>

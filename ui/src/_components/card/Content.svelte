@@ -1,5 +1,7 @@
 <script>
+    import {createEventDispatcher} from "svelte";
 
+    const dispatch = createEventDispatcher();
     export let status = ''
     export let title = ''
     export let tip = '';
@@ -81,18 +83,19 @@
 
 </style>
 <div class="main">
-    <div class="content" on:click>
+    <div class="content">
         {#if $$slots.header || title || tip}
-            <div class="head">
+            <div class="head" on:click={()=>dispatch('header-click')}>
                 <slot name="header">
                     <span class="title"><slot name="title">{title}</slot></span>
                     <span class="tip muted"><slot name="tip">{tip}</slot></span>
                 </slot>
             </div>
         {/if}
-        <div class="body">
+        <div class="body" on:click>
             <slot/>
         </div>
+        <slot name="append"/>
         <div class="footer muted">
             <slot name="footer"/>
         </div>

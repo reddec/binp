@@ -1,5 +1,5 @@
 from asyncio import sleep
-from random import randint
+from random import randint, choice
 
 from binp import BINP
 
@@ -25,6 +25,7 @@ async def currency_rate():
     euro = 1.3
     await sleep(3)  # emulate request
     await binp.journal.record('rates fetched', base_currency='USD', euro=euro)
+    await binp.journal.labels("API", "rates", choice(['USD', 'GBP', 'YEN']))
 
 
 @binp.action
@@ -35,6 +36,12 @@ async def always_fail():
     """
     await sleep(3)  # emulate request
     raise RuntimeError("always failed")
+
+
+@binp.action
+@binp.journal
+async def do_nothing():
+    await sleep(3)  # emulate request
 
 
 @binp.service
