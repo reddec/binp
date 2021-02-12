@@ -260,7 +260,7 @@ class Journals:
 
         :param message: short message, describes record
         :param events: key->value of events, where key is event name, and value is basic type or pydantic model.
-        Value will be serialized as JSON
+                       Value will be serialized as JSON
         """
         logger = getLogger(self.__class__.__qualname__)
         journal_id = current_journal.get()

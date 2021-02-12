@@ -142,6 +142,8 @@ Requires additional dependencies: ``pip install aiohttp aiocron``
     kv.rst
     service.rst
     utils.rst
+    docker.rst
+    configuration.rst
 
 Indices and tables
 ==================
