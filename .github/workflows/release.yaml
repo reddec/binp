@@ -32,3 +32,21 @@ jobs:
         make release-github
       env:
         TWINE_PASSWORD: ${{ secrets.PYPI_BINP_TOKEN }}
+    - name: Create change log
+      run: |
+        PREV_TAG=`git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1)`
+        export VERSION=$(echo "${GITHUB_REF}" | awk -F '/' '{print $NF}' | tr -d 'v')
+        cat _header.txt | envsubst > changelog.txt
+        git log --pretty=oneline --abbrev-commit $PREV_TAG..HEAD | grep -v docs: | grep -v build: | grep -v test: | sed 's/^/* /'  >> changelog.txt
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        body_path: changelog.txt
+        draft: false
+        prerelease: false
